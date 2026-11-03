@@ -103,7 +103,11 @@ npm run collect      # collecte complète → public/data/
 - [x] 5. Événements GDACS (filtres type/niveau/période, fiches)
 - [x] 6. Zones de tendance (DJF/JJA), Méthodologie, crédits
 - [x] 7. Vérification navigateur (desktop, mobile, build sous sous-chemin), rapport final (RAPPORT.md)
-- [ ] Suite : publier sur GitHub (dépôt pas encore créé ni commité), activer Pages, puis VPS
+- [x] Publié : dépôt public https://github.com/luckgphi-cloud/el-nino-2026 ,
+      site https://luckgphi-cloud.github.io/el-nino-2026/ (Pages via Actions, déployé le 2026-11-03)
+- [ ] Collecte planifiée (collect.yml) pas encore exécutée sur GitHub
+- [ ] Actions en Node 20 dépréciées (avertissements) : monter les versions des actions
+- [ ] Suite : hébergement sur le VPS de l'utilisateur
 
 ## Pièges connus
 
