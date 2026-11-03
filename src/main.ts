@@ -2,15 +2,9 @@ import "./styles.css";
 import { createChart } from "./chart";
 import {
   loadJSON, loadReadout, readoutAt,
-  type AlertLevel, type EventsData, type EventType, type ForecastData, type Manifest, type NinoData, type SstIndex, type TrendsData,
+  type EventsData, type EventType, type ForecastData, type Manifest, type NinoData, type SstIndex, type TrendsData,
 } from "./data";
-import { EVENT_STYLE, filterEvents, levelSvg, shapeSvg } from "./events";
-
-const LEVEL_LABEL: Record<AlertLevel, string> = {
-  Red: "Rouge : grand symbole, double anneau",
-  Orange: "Orange : symbole moyen, anneau fin",
-  Green: "Vert : petit symbole, sans anneau",
-};
+import { EVENT_STYLE, filterEvents, INTENSITY, shapeSvg, type IntensityKey } from "./events";
 import { addDays, frDate, frMonthYear, signedC, weekRange } from "./format";
 import { createMap, type Projection } from "./map";
 
@@ -76,28 +70,36 @@ async function main() {
   } else {
     $("#legend-sst").innerHTML = `<div class="legend-title">Températures de surface : indisponible</div>`;
   }
-  $("#legend-events").innerHTML = `<div class="legend-title">Événements (GDACS)</div>` +
+  // Échantillon neutre (gris) de chaque style d'intensité.
+  const sample = (k: IntensityKey) => shapeSvg("flood", 22, INTENSITY[k].style, "#c9ced6");
+  const thr = events?.intensity.thresholds;
+  const fmt = (n: number) => n.toLocaleString("fr-FR");
+  $("#legend-events").innerHTML = `<div class="legend-title">Événements observés (GDACS)</div>` +
     (Object.keys(EVENT_STYLE) as EventType[]).map((t) => `<div class="legend-item">${shapeSvg(t)} ${EVENT_STYLE[t].label}</div>`).join("") +
-    `<div class="legend-title legend-subtitle">Niveau d'alerte GDACS</div>` +
-    (["Red", "Orange", "Green"] as AlertLevel[]).map((l) => `<div class="legend-item">${levelSvg(l)} ${LEVEL_LABEL[l]}</div>`).join("");
+    `<div class="legend-title legend-subtitle">Intensité physique (mêmes seuils partout)</div>` +
+    (["extreme", "strong", "moderate", "unknown"] as IntensityKey[])
+      .map((k) => `<div class="legend-item">${sample(k)} ${INTENSITY[k].label} : ${INTENSITY[k].legend}</div>`).join("") +
+    (thr ? `<div class="legend-note">Forte / extrême à partir de : vent ${fmt(thr.cyclone[0])} / ${fmt(thr.cyclone[1])} km/h ·
+      feu ${fmt(thr.fire[0])} / ${fmt(thr.fire[1])} ha · sécheresse ${fmt(thr.drought[0])} / ${fmt(thr.drought[1])} km² ·
+      inondation ${fmt(thr.flood[0])} / ${fmt(thr.flood[1])} km²</div>` : "");
 
   // --- Filtres d'événements ---
-  document.querySelectorAll<HTMLInputElement>("input[name=lvl]").forEach((el) =>
-    el.insertAdjacentHTML("afterend", ` ${levelSvg(el.value as AlertLevel)}`));
   const types = new Set<EventType>(Object.keys(EVENT_STYLE) as EventType[]);
   $("#event-types").innerHTML = (Object.keys(EVENT_STYLE) as EventType[])
     .map((t) => `<label class="row"><input type="checkbox" name="evtype" value="${t}" checked /> ${shapeSvg(t)} ${EVENT_STYLE[t].label}</label>`).join("");
-  const levels = new Set<AlertLevel>(["Orange", "Red"]);
+  const intensities = new Set<IntensityKey>(["extreme", "strong", "unknown"]);
+  $("#event-intensities").innerHTML = (["extreme", "strong", "moderate", "unknown"] as IntensityKey[])
+    .map((k) => `<label class="row"><input type="checkbox" name="intensity" value="${k}" ${intensities.has(k) ? "checked" : ""} /> ${sample(k)} ${INTENSITY[k].label}</label>`).join("");
   let mode: "week" | "cumulative" = "week";
 
-  // Les alertes vertes (plusieurs milliers) sont dans un fichier à part, chargé seulement si on les active.
+  // Les événements d'intensité modérée (des milliers de petits feux) sont chargés seulement si on les active.
   let allEvents = events?.events ?? [];
-  let green: "absent" | "loading" | "ok" | "unavailable" = "absent";
-  async function ensureGreen() {
-    if (green !== "absent") return;
-    green = "loading";
-    const g = await loadJSON<EventsData>("events_green.json");
-    green = g ? "ok" : "unavailable";
+  let moderate: "absent" | "loading" | "ok" | "unavailable" = "absent";
+  async function ensureModerate() {
+    if (moderate !== "absent") return;
+    moderate = "loading";
+    const g = await loadJSON<EventsData>("events_moderate.json");
+    moderate = g ? "ok" : "unavailable";
     if (g) allEvents = allEvents.concat(g.events);
     refreshEvents();
   }
@@ -108,18 +110,23 @@ async function main() {
       $("#event-count").textContent = "Événements : indisponible";
       return;
     }
-    const shown = filterEvents(allEvents, { types, levels, mode, weekStart: w.start, weekEnd: w.end, periodStart: weeks[0].start });
+    // Dernière semaine : les événements vont jusqu'à la date de collecte (la carte SST, elle, s'arrête à la
+    // dernière semaine complète publiée par la NOAA).
+    const isLast = idx === weeks.length - 1;
+    const weekEnd = isLast && events.period.to > w.end ? events.period.to : w.end;
+    const shown = filterEvents(allEvents, { types, intensities, mode, weekStart: w.start, weekEnd, periodStart: weeks[0].start });
     view.setEvents(shown, allEvents);
-    const note = levels.has("Green") && green === "loading" ? " (chargement des alertes vertes…)"
-      : levels.has("Green") && green === "unavailable" ? " (alertes vertes : indisponible)" : "";
-    $("#event-count").textContent = `${shown.length} événement${shown.length > 1 ? "s" : ""} affiché${shown.length > 1 ? "s" : ""}${note}`;
+    const note = intensities.has("moderate") && moderate === "loading" ? " (chargement des événements modérés…)"
+      : intensities.has("moderate") && moderate === "unavailable" ? " (événements modérés : indisponible)" : "";
+    const until = weekEnd !== w.end ? `, jusqu'au ${frDate(weekEnd)}` : "";
+    $("#event-count").textContent = `${shown.length} événement${shown.length > 1 ? "s" : ""} affiché${shown.length > 1 ? "s" : ""}${until}${note}`;
   }
   document.querySelectorAll<HTMLInputElement>("input[name=evtype]").forEach((el) =>
     el.addEventListener("change", () => { el.checked ? types.add(el.value as EventType) : types.delete(el.value as EventType); refreshEvents(); }));
-  document.querySelectorAll<HTMLInputElement>("input[name=lvl]").forEach((el) =>
+  document.querySelectorAll<HTMLInputElement>("input[name=intensity]").forEach((el) =>
     el.addEventListener("change", () => {
-      el.checked ? levels.add(el.value as AlertLevel) : levels.delete(el.value as AlertLevel);
-      if (el.checked && el.value === "Green") void ensureGreen();
+      el.checked ? intensities.add(el.value as IntensityKey) : intensities.delete(el.value as IntensityKey);
+      if (el.checked && el.value === "moderate") void ensureModerate();
       refreshEvents();
     }));
   document.querySelectorAll<HTMLInputElement>("input[name=evmode]").forEach((el) =>

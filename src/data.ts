@@ -45,14 +45,17 @@ export interface SstIndex {
 
 export type EventType = "fire" | "flood" | "cyclone" | "drought";
 export type AlertLevel = "Green" | "Orange" | "Red";
+export type Intensity = "moderate" | "strong" | "extreme";
 export interface ClimateEvent {
   id: string; type: EventType; name: string; from: string; to: string;
   lon: number; lat: number; level: AlertLevel; severity: string | null; country: string | null; url: string | null;
+  /** Mesure physique (km/h, ha, km²) et classe d'intensité qui en découle ; null = non mesurée. */
+  magnitude: number | null; magnitude_unit: string; intensity: Intensity | null;
 }
 export interface EventsData {
   retrieved_at: string; source: string; url: string; terms_url: string;
   period: { from: string; to: string };
-  levels: AlertLevel[];
+  intensity: { thresholds: Record<EventType, [number, number]>; units: Record<EventType, string>; measures: Record<EventType, string> };
   events: ClimateEvent[];
 }
 

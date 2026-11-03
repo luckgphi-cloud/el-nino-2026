@@ -28,9 +28,31 @@ il n'est pas corrigé du réchauffement de l'ensemble des tropiques. Le comparer
 **Statut officiel.** Le bandeau en haut du graphique reprend le statut du système d'alerte ENSO de la NOAA à
 chaque bulletin mensuel : La Niña, veille El Niño, El Niño…
 
-**Événements extrêmes.** Alertes GDACS d'inondation, de cyclone tropical, de sécheresse et de feu de forêt. Le
-critère d'inclusion est le même partout dans le monde : par défaut, alertes orange et rouge ; le niveau vert peut
-être activé. Aucune sélection n'est faite selon un lien supposé avec El Niño.
+**Événements extrêmes.** Inondations, cyclones tropicaux, sécheresses et feux de forêt recensés par GDACS.
+Ils sont classés selon leur **intensité physique**, avec les mêmes seuils partout dans le monde, et **pas** selon
+l'alerte GDACS. Cette alerte (vert / orange / rouge) mesure le besoin probable d'aide internationale : elle intègre la
+population exposée et la capacité du pays à faire face. Une catastrophe majeure dans un pays riche peut donc y rester
+« verte ». Elle n'est plus qu'une information secondaire dans la fiche.
+
+| Type | Mesure physique (source GDACS) | Forte à partir de | Extrême à partir de |
+|---|---|---|---|
+| Cyclone | Vent maximal soutenu | 119 km/h (catégorie 1 Saffir-Simpson) | 178 km/h (catégorie 3, « ouragan majeur ») |
+| Incendie | Surface brûlée | 40 000 ha | 100 000 ha |
+| Sécheresse | Surface touchée (sécheresse agricole) | 200 000 km² | 1 000 000 km² |
+| Inondation | Surface de la zone touchée, estimée (polygone « Affected area » de GDACS, calculé en km²) | 10 000 km² | 100 000 km² |
+
+- Les seuils des cyclones suivent l'échelle officielle de Saffir-Simpson. Les autres sont des valeurs rondes choisies
+  d'après la répartition des événements de 2026 : GDACS ne recense déjà que de grands feux (médiane d'environ 7 500 ha),
+  et la surface des inondations est très étalée (médiane d'environ 190 km² ; un cinquième au-delà de
+  10 000 km², 7 % au-delà de 100 000 km²). Ces choix sont réglables dans `collect/events.py`.
+- **Limite** : la surface d'une inondation est la zone *touchée* estimée par satellite et par modèle (GloFAS, DFO),
+  pas la surface en eau ; pour les grands événements, elle peut couvrir un bassin entier. Elle est moins précise
+  qu'une vitesse de vent. Quand GDACS ne fournit pas de polygone, l'événement est affiché « non mesuré » (contour pointillé).
+- Rendu : modérée = petit symbole creux ; forte = symbole moyen plein ; extrême = grand symbole plein avec halo blanc.
+  Par défaut, l'app montre les événements forts, extrêmes et non mesurés ; les modérés sont en option.
+- Sur la dernière semaine, les événements sont affichés jusqu'à la date de collecte, alors que la carte des
+  températures s'arrête à la dernière semaine complète publiée par la NOAA.
+- Aucune sélection n'est faite selon un lien supposé avec El Niño.
 
 ## 2. Prévu
 

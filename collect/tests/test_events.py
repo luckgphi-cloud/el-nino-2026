@@ -59,10 +59,47 @@ def test_user_agent_is_ascii():
     config.USER_AGENT.encode("ascii")
 
 
-def test_split_by_level():
-    evs = [{"level": "Green"}, {"level": "Orange"}, {"level": "Red"}]
-    major, green = events.split_by_level(evs)
-    assert [e["level"] for e in major] == ["Orange", "Red"] and green == [{"level": "Green"}]
+def test_magnitude_parsed_from_real_severity_texts():
+    assert events.magnitude_from_severity("cyclone", "Hurricane/Typhoon > 74 mph (maximum wind speed of 241 km/h)") == 241.0
+    assert events.magnitude_from_severity("fire", "Green impact for forestfire in 7227 ha") == 7227.0
+    assert events.magnitude_from_severity("drought", "Minor impact for agricultural drought in 1552123 km2") == 1552123.0
+    assert events.magnitude_from_severity("flood", "Magnitude 0 ") is None
+    assert events.magnitude_from_severity("fire", None) is None
+
+
+def test_intensity_classes_use_physical_thresholds():
+    assert events.intensity_class("cyclone", 118) == "moderate"
+    assert events.intensity_class("cyclone", 119) == "strong"   # catégorie 1 Saffir-Simpson
+    assert events.intensity_class("cyclone", 178) == "extreme"  # catégorie 3
+    assert events.intensity_class("fire", 39_999) == "moderate"
+    assert events.intensity_class("fire", 100_000) == "extreme"
+    assert events.intensity_class("drought", 1_000_000) == "extreme"
+    assert events.intensity_class("flood", None) is None
+
+
+def test_intensity_ignores_gdacs_alert_level():
+    a = {"type": "cyclone", "severity": "Tropical Storm (maximum wind speed of 222 km/h)", "level": "Green"}
+    b = {"type": "cyclone", "severity": "Tropical Storm (maximum wind speed of 222 km/h)", "level": "Red"}
+    events.add_intensity([a, b], area_fn=lambda e: None)
+    assert a["intensity"] == b["intensity"] == "extreme"
+
+
+def test_ring_area_one_degree_square_at_equator():
+    ring = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+    assert abs(events.ring_area_km2(ring) - 12364) < 50  # 111,2 km × 111,2 km
+
+
+def test_affected_area_from_real_geometry():
+    fc = json.loads((FIX / "FIXTURE_gdacs_flood_geometry.json").read_text())
+    area = events.affected_area_km2(fc)
+    assert area is not None and area > 0
+    assert events.affected_area_km2({"features": []}) is None
+
+
+def test_split_by_intensity():
+    evs = [{"intensity": "moderate"}, {"intensity": "strong"}, {"intensity": None}, {"intensity": "extreme"}]
+    main, moderate = events.split_by_intensity(evs)
+    assert [e["intensity"] for e in main] == ["strong", None, "extreme"] and moderate == [{"intensity": "moderate"}]
 
 
 def test_pagination_stops_on_repeated_page(monkeypatch):

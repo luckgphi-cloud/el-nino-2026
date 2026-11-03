@@ -60,7 +60,7 @@ npm run collect                         # toutes les étapes
 | `nino` | `nino.json` (Niño-3.4 hebdo, RONI, ONI) | quelques secondes |
 | `forecast` | `forecast.json` (probabilités CPC, bulletins, statuts) | ~30 s |
 | `sst` | `sst/*.png`, `sst/*.bin`, `sst/index.json` | ~1 min par semaine au premier passage (serveur NOAA limité), puis seulement les nouvelles semaines grâce au cache `.cache/` |
-| `events` | `events.json` (alertes orange et rouge) + `events_green.json` (alertes vertes, chargées à la demande) | 10 à 15 min (API lente, milliers de petits feux) |
+| `events` | `events.json` (intensité forte, extrême ou non mesurée) + `events_moderate.json` (modérée, chargé à la demande) | 15 à 45 min au premier passage (API lente, une requête par inondation, mise en cache ensuite) |
 | `trends` | `trends.json` (zones schématiques) | immédiat |
 | `basemap` | `public/basemap/*.geojson` (Natural Earth) | ponctuel, hors collecte par défaut |
 

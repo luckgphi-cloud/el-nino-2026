@@ -42,10 +42,8 @@
           <legend>Événements extrêmes (observés, GDACS)</legend>
           <div id="event-types"></div>
           <div class="sub-fieldset">
-            <span class="mini-title">Niveau d'alerte</span>
-            <label class="row"><input type="checkbox" name="lvl" value="Red" checked /> Rouge (double anneau)</label>
-            <label class="row"><input type="checkbox" name="lvl" value="Orange" checked /> Orange (anneau fin)</label>
-            <label class="row"><input type="checkbox" name="lvl" value="Green" /> Vert (sans anneau)</label>
+            <span class="mini-title">Intensité physique (vent, surface), indépendante du pays</span>
+            <div id="event-intensities"></div>
           </div>
           <div class="sub-fieldset">
             <span class="mini-title">Période</span>
@@ -103,7 +101,7 @@
       <li><strong>Carte</strong> : anomalies de température de surface de la mer, moyennées sur des semaines dimanche–samedi (comme la NOAA). Anomalie = température quotidienne NOAA OISST v2.1 moins la moyenne 1991-2020 du même jour, à 0,5°. Les 15 derniers jours sont <em>provisoires</em> (révisables par la NOAA).</li>
       <li><strong>Niño-3.4 hebdomadaire</strong> : indice publié par la NOAA (zone 5°S–5°N, 170°O–120°O).</li>
       <li><strong>RONI</strong> : indice officiel utilisé par la NOAA pour déclarer El Niño. C'est la moyenne sur 3 mois de l'anomalie Niño-3.4, dont on retire le réchauffement moyen de toute la bande tropicale. El Niño : RONI > +0,5 °C. Il est plus bas que l'indice hebdomadaire « brut » parce que l'océan tropical entier est lui aussi plus chaud que la normale.</li>
-      <li><strong>Événements</strong> : alertes du système GDACS (ONU / Commission européenne). Même critère partout dans le monde : par défaut, niveaux orange et rouge.</li>
+      <li><strong>Événements</strong> : inondations, cyclones, sécheresses et feux recensés par GDACS (ONU / Commission européenne), classés selon leur <em>intensité physique</em> (vent maximal, surface brûlée, surface de la zone touchée), avec les mêmes seuils partout dans le monde. L'alerte GDACS, qui dépend aussi de la population exposée et des moyens du pays, n'est qu'une information secondaire dans la fiche. Les surfaces d'inondation sont des estimations par satellite et par modèle. Sur la dernière semaine, les événements vont jusqu'à la date de collecte.</li>
     </ul>
     <h3>Ce qui est <em>prévu</em></h3>
     <p>Les barres hachurées sont la prévision officielle de la NOAA (Climate Prediction Center) : pour chaque saison de 3 mois, la probabilité que le RONI tombe dans chaque classe d'intensité. La NOAA ne publie pas de valeur unique : nous n'en traçons donc pas. Il n'y a pas de carte de prévision.</p>

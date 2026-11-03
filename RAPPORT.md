@@ -17,9 +17,14 @@
   - bandeau du statut officiel NOAA mois par mois ;
   - prévision NOAA CPC en probabilités par classe et par saison, hachurée et pointillée, avec sa date d'émission.
 - **Événements GDACS** : incendies, inondations, cyclones, sécheresses. Chacun a une couleur et une forme
-  distinctes, la taille indique le niveau d'alerte. Filtres par type, par niveau et par période (semaine ou
-  cumul). Fiche au clic : type, dates, lieu, niveau, intensité, lien vers le rapport GDACS, avec la mention
-  qu'aucune cause n'est attribuée.
+  distinctes. Ils sont classés selon leur **intensité physique** (vent maximal, surface brûlée, surface touchée), avec
+  les mêmes seuils partout dans le monde, et non selon l'alerte GDACS, qui dépend des moyens du pays. Rendu : creux
+  (modéré), plein (fort), grand avec halo blanc (extrême). Filtres par type, par intensité et par période (semaine
+  ou cumul). Fiche au clic : intensité et mesure, dates, lieu, alerte GDACS en information secondaire, lien vers le
+  rapport GDACS, avec la mention qu'aucune cause n'est attribuée. Sur la dernière semaine, les événements vont jusqu'à
+  la date de collecte.
+- **Deux fonds de carte** : terres gris foncé sous les températures ; sans les températures, océan bleu marine et
+  terres claires avec côtes soulignées.
 - **Zones de tendance** El Niño (déc.–févr. / juin–août), désactivées par défaut, avec motifs hachurés ou
   pointillés et la mention « tendance statistique, pas causalité ».
 - **Panneaux Méthodologie et Sources/crédits** dans l'app, plus `METHODOLOGIE.md` et `SOURCES.md`.
@@ -33,8 +38,8 @@
 | `sst/` | 44 semaines (centrées du 31 déc. 2025 au 28 oct. 2026), 4,5 Mo ; dernier jour observé : 1er nov. 2026 |
 | `nino.json` | 44 valeurs hebdomadaires (dernière : +3,4 °C, semaine du 28 oct.) ; RONI de NDJ 2025 à JAS 2026 (+1,69) |
 | `forecast.json` | Probabilités CPC émises en octobre 2026 (SON 2026 → MJJ 2027) ; 10 bulletins mensuels (janv.–oct.) |
-| `events.json` | 49 alertes orange ou rouge : 15 cyclones, 15 incendies, 13 inondations, 6 sécheresses |
-| `events_green.json` | 7 576 alertes vertes (dont 6 916 petits feux), chargées seulement si on active le niveau vert |
+| `events.json` | 349 événements d'intensité forte ou extrême : 43 cyclones, 174 incendies, 120 inondations, 12 sécheresses |
+| `events_moderate.json` | 7 276 événements modérés (dont 6 757 feux), chargés seulement si on les active |
 | `trends.json` | 24 zones schématiques (16 en déc.–févr., 8 en juin–août) |
 
 ## Ce qui n'a pas pu être fait, ou a été écarté
@@ -56,6 +61,9 @@
   et les 15 derniers jours restent révisables.
 - Le RONI n'est publié qu'une fois par mois : la courbe RONI s'arrête à la dernière saison publiée (juil.–sept. 2026).
 - Les alertes GDACS sont en partie automatiques. Leur position est un point représentatif (centroïde).
+- Surfaces d'inondation : zone *touchée* estimée par satellite et par modèle, pas la surface en eau. Elle peut couvrir
+  un bassin entier pour les grands événements. Les seuils des feux, des sécheresses et des inondations sont des
+  choix documentés (répartition 2026), pas des normes officielles ; seuls ceux des cyclones (Saffir-Simpson) le sont.
 - Les sécheresses GDACS peuvent avoir commencé bien avant 2026 (critère : actives pendant la période).
 - La collecte SST complète a pris environ 30 min au premier passage, à cause de la limitation de débit du serveur
   NOAA. Les passages suivants ne téléchargent que les nouvelles semaines.

@@ -56,6 +56,7 @@ Chaque source a été testée par un appel réel le 3 novembre 2026. Aucune n'ex
 | API | `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist={FL,TC,DR,WF}&fromdate=…&todate=…&alertlevel=Green;Orange;Red&pagenumber=N` |
 | Types retenus | FL (inondations), TC (cyclones tropicaux), DR (sécheresses), WF (feux de forêt). Exclus : séismes, tsunamis, volcans. |
 | Conditions | https://www.gdacs.org/About/termofuse.aspx (PDF de mars 2025). Données fournies « en l'état », sans garantie, et qui ne remplacent pas les alertes officielles nationales. **Aucune licence de réutilisation explicite** : l'app cite la source et reproduit l'avertissement. |
+| Intensité | Lue dans `severitydata` (vent en km/h, surface brûlée en ha, surface de sécheresse en km²). Pour les inondations, qui n'ont pas de mesure dans la liste, la surface est calculée à partir du polygone « Affected area » de `https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=FL&eventid=…&episodeid=…` (un appel par inondation, environ 3 s, mis en cache dans `.cache/gdacs_fl/`). |
 | Fréquence | Temps quasi réel |
 | Limites | Pages de 100 résultats ; réponses lentes (jusqu'à environ 20 s par page). Les « ; » ne doivent **pas** être encodés (`%3B` → 400). Le pare-feu renvoie **403** si le User-Agent contient des caractères non ASCII. Les alertes cyclones sont automatiques (sans relecture humaine). Les sécheresses peuvent avoir commencé avant 2026. |
 

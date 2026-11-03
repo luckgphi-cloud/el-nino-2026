@@ -5,14 +5,14 @@ import { addDays, frDate, signedC, weekRange } from "./format";
 
 // FIXTURE_ : événements de test construits à la main, pas des données réelles.
 const FIXTURE_EVENTS: ClimateEvent[] = [
-  { id: "a", type: "fire", name: "FIXTURE feu", from: "2026-10-20T00:00:00", to: "2026-10-26T00:00:00", lon: 0, lat: 0, level: "Orange", severity: null, country: null, url: null },
-  { id: "b", type: "flood", name: "FIXTURE crue", from: "2026-03-01T00:00:00", to: "2026-03-05T00:00:00", lon: 0, lat: 0, level: "Red", severity: "x", country: "Y", url: "https://example.org/?a=1&b=2" },
-  { id: "c", type: "drought", name: "FIXTURE sécheresse", from: "2022-09-21T00:00:00", to: "2026-11-01T00:00:00", lon: 0, lat: 0, level: "Green", severity: null, country: null, url: null },
+  { id: "a", type: "fire", name: "FIXTURE feu", from: "2026-10-20T00:00:00", to: "2026-10-26T00:00:00", lon: 0, lat: 0, level: "Orange", severity: null, country: null, url: null, magnitude: 60000, magnitude_unit: "ha", intensity: "extreme" },
+  { id: "b", type: "flood", name: "FIXTURE crue", from: "2026-03-01T00:00:00", to: "2026-03-05T00:00:00", lon: 0, lat: 0, level: "Red", severity: "x", country: "Y", url: "https://example.org/?a=1&b=2", magnitude: null, magnitude_unit: "km²", intensity: null },
+  { id: "c", type: "drought", name: "FIXTURE sécheresse", from: "2022-09-21T00:00:00", to: "2026-11-01T00:00:00", lon: 0, lat: 0, level: "Green", severity: null, country: null, url: null, magnitude: 150000, magnitude_unit: "km²", intensity: "moderate" },
 ];
 
 const base = {
   types: new Set(["fire", "flood", "cyclone", "drought"] as const),
-  levels: new Set(["Green", "Orange", "Red"] as const),
+  intensities: new Set(["extreme", "strong", "moderate", "unknown"] as const),
   weekStart: "2026-10-25",
   weekEnd: "2026-10-31",
   periodStart: "2025-12-28",
@@ -20,29 +20,37 @@ const base = {
 
 describe("filterEvents", () => {
   it("garde les événements actifs pendant la semaine (chevauchement)", () => {
-    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), levels: new Set(base.levels), mode: "week" });
+    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), intensities: new Set(base.intensities), mode: "week" });
     expect(r.map((e) => e.id)).toEqual(["a", "c"]);
   });
   it("cumul depuis le début de la période", () => {
-    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), levels: new Set(base.levels), mode: "cumulative" });
+    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), intensities: new Set(base.intensities), mode: "cumulative" });
     expect(r.map((e) => e.id)).toEqual(["a", "b", "c"]);
   });
-  it("applique les filtres de type et de niveau", () => {
-    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(["fire", "flood"] as const), levels: new Set(["Orange", "Red"] as const), mode: "cumulative" });
+  it("applique les filtres de type et d'intensité (non mesurée = « unknown »)", () => {
+    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(["fire", "flood", "drought"] as const), intensities: new Set(["extreme", "unknown"] as const), mode: "cumulative" });
     expect(r.map((e) => e.id)).toEqual(["a", "b"]);
   });
+  it("l'intensité ne dépend pas du niveau d'alerte GDACS", () => {
+    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), intensities: new Set(["moderate"] as const), mode: "cumulative" });
+    expect(r.map((e) => e.id)).toEqual(["c"]);
+  });
   it("n'affiche pas un événement futur par rapport à la semaine", () => {
-    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), levels: new Set(base.levels), weekStart: "2026-02-01", weekEnd: "2026-02-07", mode: "cumulative" });
+    const r = filterEvents(FIXTURE_EVENTS, { ...base, types: new Set(base.types), intensities: new Set(base.intensities), weekStart: "2026-02-01", weekEnd: "2026-02-07", mode: "cumulative" });
     expect(r.map((e) => e.id)).toEqual(["c"]);
   });
 });
 
 describe("eventCard", () => {
-  it("échappe le HTML et signale l'absence d'intensité", () => {
+  it("échappe le HTML et affiche la mesure physique", () => {
     const html = eventCard({ ...FIXTURE_EVENTS[0], name: "<b>x</b>" });
     expect(html).toContain("&lt;b&gt;x&lt;/b&gt;");
-    expect(html).toContain("indisponible");
+    expect(html).toContain("Extrême");
+    expect(html).toMatch(/surface brûlée : 60\s000 ha/);
     expect(html).not.toMatch(/caus[ée] par El Ni/);
+  });
+  it("signale une mesure absente", () => {
+    expect(eventCard(FIXTURE_EVENTS[1])).toContain("mesure physique indisponible");
   });
   it("échappe l'URL", () => {
     expect(eventCard(FIXTURE_EVENTS[1])).toContain("a=1&amp;b=2");

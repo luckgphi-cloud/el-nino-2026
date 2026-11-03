@@ -5,12 +5,19 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
 setWorkerUrl(workerUrl);
 import { absoluteUrl, assetUrl, dataUrl, type ClimateEvent, type EventType, type SstIndex } from "./data";
-import { EVENT_STYLE, eventCard, shapeSvg, toGeoJSON } from "./events";
+import { EVENT_STYLE, eventCard, shapeSvg, toGeoJSON, type SymbolStyle } from "./events";
 
 export type Projection = "globe" | "mercator";
 
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 // Vue d'ouverture : Pacifique équatorial, là où se trouve le réchauffement.
+// Deux fonds : avec les températures, terres gris foncé (se détachent des eaux blanches proches de la normale) ;
+// sans, une carte classique océan bleu marine / terres claires, côtes soulignées.
+const BASE = {
+  sst: { ocean: "#1d2733", land: "#4b5058", coast: "#d0d4da", borders: "#7d838c" },
+  plain: { ocean: "#123a5e", land: "#d9d3c4", coast: "#0b1e30", borders: "#9a927f" },
+};
+
 export const PACIFIC_VIEW = { center: [-150, 2] as [number, number], zoom: 1.55 };
 
 function svgImage(svg: string, size: number): Promise<HTMLImageElement> {
@@ -69,25 +76,19 @@ export async function createMap(container: HTMLElement, sst: SstIndex | null, in
         ...(sst && initialWeek ? { sst: { type: "image" as const, url: absoluteUrl(dataUrl(`sst/${initialWeek}.png`)), coordinates: coords } } : {}),
       },
       layers: [
-        { id: "ocean", type: "background", paint: { "background-color": "#1d2733" } },
+        { id: "ocean", type: "background", paint: { "background-color": BASE.sst.ocean } },
         ...(sst && initialWeek
           ? [{ id: "sst", type: "raster" as const, source: "sst", paint: { "raster-resampling": "nearest" as const, "raster-fade-duration": 0 } }]
           : []),
-        { id: "land", type: "fill", source: "land", paint: { "fill-color": "#585d66" } },
-        { id: "borders", type: "line", source: "borders", paint: { "line-color": "#8a909a", "line-width": 0.6 } },
+        { id: "land", type: "fill", source: "land", paint: { "fill-color": BASE.sst.land } },
+        { id: "coast", type: "line", source: "land", paint: { "line-color": BASE.sst.coast, "line-width": 0.8 } },
+        { id: "borders", type: "line", source: "borders", paint: { "line-color": BASE.sst.borders, "line-width": 0.5 } },
         { id: "trends-fill", type: "fill", source: "trends", layout: { visibility: "none" }, paint: { "fill-pattern": ["get", "pattern"] } },
         { id: "trends-line", type: "line", source: "trends", layout: { visibility: "none" },
           paint: { "line-color": ["get", "stroke"], "line-width": 1.6, "line-dasharray": [3, 2] } },
-        // Niveau d'alerte : anneaux (sans couleur rouge, pour ne pas se confondre avec l'échelle des températures).
-        // Rouge = double anneau épais, orange = anneau fin, vert = aucun.
-        { id: "events-ring-outer", type: "circle", source: "events", filter: ["==", ["get", "level"], "Red"],
-          paint: { "circle-radius": 16, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#111", "circle-stroke-width": 2 } },
-        { id: "events-ring", type: "circle", source: "events", filter: ["in", ["get", "level"], ["literal", ["Red", "Orange"]]],
-          paint: { "circle-radius": ["match", ["get", "level"], "Red", 14, 11], "circle-color": "rgba(0,0,0,0)",
-            "circle-stroke-color": "#ffffff", "circle-stroke-width": ["match", ["get", "level"], "Red", 2.5, 1.2] } },
         { id: "events", type: "symbol", source: "events",
           layout: { "icon-image": ["get", "icon"], "icon-size": ["get", "size"], "icon-allow-overlap": true,
-            "symbol-sort-key": ["match", ["get", "level"], "Red", 3, "Orange", 2, 1] } },
+            "symbol-sort-key": ["get", "rank"] } },
       ],
     },
     center: PACIFIC_VIEW.center,
@@ -101,7 +102,9 @@ export async function createMap(container: HTMLElement, sst: SstIndex | null, in
   await new Promise<void>((resolve) => map.once("load", () => resolve()));
 
   for (const t of Object.keys(EVENT_STYLE) as EventType[]) {
-    map.addImage(`ev-${t}`, await svgImage(shapeSvg(t, 36), 36), { pixelRatio: 2 });
+    for (const st of ["hollow", "filled", "halo", "dashed"] as SymbolStyle[]) {
+      map.addImage(`ev-${t}-${st}`, await svgImage(shapeSvg(t, 40, st), 40), { pixelRatio: 2 });
+    }
   }
   map.addImage("hatch-wet", hatchPattern("#4fc3f7", "lines"));
   map.addImage("hatch-dry", hatchPattern("#d7b98e", "dots"));
@@ -170,6 +173,11 @@ export async function createMap(container: HTMLElement, sst: SstIndex | null, in
     },
     setSstVisible(v) {
       if (map.getLayer("sst")) map.setLayoutProperty("sst", "visibility", v ? "visible" : "none");
+      const b = v ? BASE.sst : BASE.plain;
+      map.setPaintProperty("ocean", "background-color", b.ocean);
+      map.setPaintProperty("land", "fill-color", b.land);
+      map.setPaintProperty("coast", "line-color", b.coast);
+      map.setPaintProperty("borders", "line-color", b.borders);
     },
     setProjection(p) {
       map.setProjection({ type: p });

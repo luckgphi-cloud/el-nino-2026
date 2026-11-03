@@ -85,8 +85,11 @@ npm run collect      # collecte complète → public/data/
 - Prévision : **barres de probabilités par saison** issues du tableau officiel CPC. Pas de ligne
   « centrale » : la NOAA n'en publie pas et la classe haute (≥ 2 °C) est ouverte.
 - Prévisions modèle par modèle IRI : non utilisées (publiées seulement en images).
-- Événements : GDACS seul (EONET relaie surtout GDACS). Par défaut Orange + Rouge ; Vert en option.
-  Critère identique pour le monde entier.
+- Événements : GDACS seul (EONET relaie surtout GDACS). Classés par **intensité physique** (vent, surfaces),
+  pas par alerte GDACS (qui dépend de la richesse et de l'exposition du pays : rejeté par l'utilisateur le 2026-11-03).
+  Seuils dans `collect/events.py` (THRESHOLDS). Symboles : creux (modéré), plein (fort), plein + halo (extrême),
+  pointillé (non mesuré). Par défaut : fort + extrême + non mesuré. Dernière semaine : événements jusqu'à la collecte.
+- Fond de carte : deux palettes (températures affichées / masquées) dans `src/map.ts` (BASE).
 - Incendies : pas de NASA FIRMS (refusé par l'utilisateur, clé requise).
 - Zones de tendance : option A, zones **schématiques** tracées d'après la carte et le texte CPC
   (IRI Data Library exige un compte). Toujours marquées approximatives.
@@ -100,7 +103,7 @@ npm run collect      # collecte complète → public/data/
 - [x] 2. PNG SST hebdo + validation contre Niño-3.4 CPC (écart ≈ 0,0–0,1 °C)
 - [x] 3. Globe/carte, couche SST, curseur, lecture, légende, lecture au survol
 - [x] 4. Courbe synchronisée + prévision (barres de probabilités) + bandeau de statut CPC
-- [x] 5. Événements GDACS (filtres type/niveau/période, fiches)
+- [x] 5. Événements GDACS (filtres type/intensité/période, fiches)
 - [x] 6. Zones de tendance (DJF/JJA), Méthodologie, crédits
 - [x] 7. Vérification navigateur (desktop, mobile, build sous sous-chemin), rapport final (RAPPORT.md)
 - [x] Publié : dépôt public https://github.com/luckgphi-cloud/el-nino-2026 ,
