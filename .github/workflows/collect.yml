@@ -1,0 +1,42 @@
+name: Collecte des données
+
+on:
+  schedule:
+    - cron: "0 12 * * 2"   # chaque mardi 12:00 UTC (indices CPC mis à jour le lundi)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m venv .venv && .venv/bin/pip install -r collect/requirements.txt
+      - name: Cache des téléchargements SST
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: sst-${{ github.run_id }}
+          restore-keys: sst-
+      - name: Tests de la collecte
+        run: .venv/bin/python -m pytest collect/tests -q
+      - name: Collecte
+        run: .venv/bin/python -m collect
+        continue-on-error: true   # une source en panne ne bloque pas les autres (voir manifest.json)
+      - name: Commit des données
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data
+          git diff --cached --quiet || git commit -m "Données : collecte du $(date -u +%F)"
+          git push

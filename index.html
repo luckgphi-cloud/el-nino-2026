@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>El Niño 2026-27 · carte</title>
+  <meta name="description" content="L'épisode El Niño 2026-27 semaine par semaine : anomalies de température de l'océan, indice Niño-3.4, prévision officielle NOAA et événements extrêmes." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23b2182b'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>El Niño 2026-27 <span class="sub">observé · prévu · tendances</span></h1>
+    <div class="top-actions">
+      <div class="seg" role="group" aria-label="Projection">
+        <button type="button" data-proj="globe" aria-pressed="true">Globe</button>
+        <button type="button" data-proj="mercator" aria-pressed="false">Carte</button>
+      </div>
+      <button type="button" class="link-btn" data-open="dlg-method">Méthodologie</button>
+      <button type="button" class="link-btn" data-open="dlg-sources">Sources et crédits</button>
+      <button type="button" class="link-btn panel-toggle" aria-controls="layers" aria-expanded="false">Couches</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="map-wrap">
+      <div id="map" aria-label="Globe des anomalies de température de surface de la mer"></div>
+      <div id="status-banner" class="banner" hidden></div>
+      <div id="readout" class="readout" aria-live="polite">Survolez l'océan pour lire l'anomalie</div>
+
+      <details id="legend" class="legend" open>
+        <summary>Légende</summary>
+        <div class="legend-block" id="legend-sst"></div>
+        <div class="legend-block" id="legend-events"></div>
+        <div class="legend-block" id="legend-trends" hidden></div>
+      </details>
+
+      <aside id="layers" class="layers">
+        <h2>Couches</h2>
+        <label class="row"><input type="checkbox" id="lyr-sst" checked /> Anomalies de température de surface (observé)</label>
+
+        <fieldset>
+          <legend>Événements extrêmes (observés, GDACS)</legend>
+          <div id="event-types"></div>
+          <div class="sub-fieldset">
+            <span class="mini-title">Niveau d'alerte</span>
+            <label class="row"><input type="checkbox" name="lvl" value="Red" checked /> Rouge (grand symbole)</label>
+            <label class="row"><input type="checkbox" name="lvl" value="Orange" checked /> Orange (symbole moyen)</label>
+            <label class="row"><input type="checkbox" name="lvl" value="Green" /> Vert (petit symbole)</label>
+          </div>
+          <div class="sub-fieldset">
+            <span class="mini-title">Période</span>
+            <label class="row"><input type="radio" name="evmode" value="week" checked /> Actifs pendant la semaine affichée</label>
+            <label class="row"><input type="radio" name="evmode" value="cumulative" /> Cumul depuis le début</label>
+          </div>
+          <p id="event-count" class="muted"></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Zones de tendance El Niño</legend>
+          <label class="row"><input type="checkbox" id="lyr-trends" /> Afficher (désactivé par défaut)</label>
+          <div class="sub-fieldset">
+            <span class="mini-title">Saison des épisodes passés</span>
+            <label class="row"><input type="radio" name="trseason" value="DJF" checked /> Décembre–février</label>
+            <label class="row"><input type="radio" name="trseason" value="JJA" /> Juin–août</label>
+          </div>
+          <p class="warn">Tendance statistique, pas causalité. Zones schématiques et approximatives.</p>
+        </fieldset>
+      </aside>
+    </section>
+
+    <section class="timeline" aria-label="Chronologie">
+      <div class="controls">
+        <button type="button" id="play" class="play" aria-label="Lecture">▶</button>
+        <label class="speed">Vitesse
+          <select id="speed">
+            <option value="1200">×0,5</option>
+            <option value="600" selected>×1</option>
+            <option value="300">×2</option>
+            <option value="150">×4</option>
+          </select>
+        </label>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Semaine affichée" />
+        <div class="week-info">
+          <span id="week-label">—</span>
+          <span id="week-badge" class="badge observed">Observé</span>
+        </div>
+      </div>
+      <div class="chart-head">
+        <span class="key"><i class="k-weekly"></i>Niño-3.4 hebdomadaire (observé)</span>
+        <span class="key"><i class="k-roni"></i>RONI, moyenne 3 mois (observé ; □ provisoire)</span>
+        <span class="key"><i class="k-threshold"></i>Seuils officiels (RONI)</span>
+        <span class="key"><i class="k-forecast"></i>Prévision : probabilité de chaque classe de RONI (classe du haut : ≥ +2 °C) · sous l'axe : chance d'El Niño</span>
+      </div>
+      <div id="chart" class="chart"></div>
+    </section>
+  </main>
+
+  <dialog id="dlg-method" class="dlg">
+    <form method="dialog"><button class="close" aria-label="Fermer">×</button></form>
+    <h2>Méthodologie</h2>
+    <h3>Ce qui est <em>observé</em></h3>
+    <ul>
+      <li><strong>Carte</strong> : anomalies de température de surface de la mer, moyennées sur des semaines dimanche–samedi (comme la NOAA). Anomalie = température quotidienne NOAA OISST v2.1 moins la moyenne 1991-2020 du même jour, à 0,5°. Les 15 derniers jours sont <em>provisoires</em> (révisables par la NOAA).</li>
+      <li><strong>Niño-3.4 hebdomadaire</strong> : indice publié par la NOAA (zone 5°S–5°N, 170°O–120°O).</li>
+      <li><strong>RONI</strong> : indice officiel utilisé par la NOAA pour déclarer El Niño. C'est la moyenne sur 3 mois de l'anomalie Niño-3.4, dont on retire le réchauffement moyen de toute la bande tropicale. El Niño : RONI > +0,5 °C. Il est plus bas que l'indice hebdomadaire « brut » parce que l'océan tropical entier est lui aussi plus chaud que la normale.</li>
+      <li><strong>Événements</strong> : alertes du système GDACS (ONU / Commission européenne). Même critère partout dans le monde : par défaut, niveaux orange et rouge.</li>
+    </ul>
+    <h3>Ce qui est <em>prévu</em></h3>
+    <p>Les barres hachurées sont la prévision officielle de la NOAA (Climate Prediction Center) : pour chaque saison de 3 mois, la probabilité que le RONI tombe dans chaque classe d'intensité. La NOAA ne publie pas de valeur unique : nous n'en traçons donc pas. Il n'y a pas de carte de prévision.</p>
+    <h3>Ce qui est une <em>tendance</em></h3>
+    <p>Les zones de tendance montrent où, statistiquement, les épisodes El Niño passés se sont accompagnés de conditions plus humides, plus sèches ou plus chaudes, d'après la NOAA. Elles sont schématiques. Une tendance n'est pas une prévision, et aucune région n'est certaine de la vivre.</p>
+    <h3>Limites de l'attribution</h3>
+    <p>Aucun événement affiché n'est attribué à El Niño. Un incendie, une inondation ou une sécheresse ont toujours plusieurs causes (météo du moment, autres modes climatiques, réchauffement global, aménagement du territoire). Attribuer un événement précis demande une étude dédiée. La superposition sur la carte montre une coïncidence dans le temps, pas un lien de cause à effet.</p>
+    <h3>Vérification</h3>
+    <p id="validation-text">Indisponible.</p>
+  </dialog>
+
+  <dialog id="dlg-sources" class="dlg">
+    <form method="dialog"><button class="close" aria-label="Fermer">×</button></form>
+    <h2>Sources et crédits</h2>
+    <ul id="sources-list"></ul>
+    <p class="muted">Les avertissements GDACS s'appliquent : alertes produites en partie automatiquement, fournies « en l'état », qui ne remplacent pas les alertes des autorités nationales.</p>
+  </dialog>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
