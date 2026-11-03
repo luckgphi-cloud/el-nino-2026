@@ -105,7 +105,7 @@ npm run collect      # collecte complète → public/data/
 - [x] 7. Vérification navigateur (desktop, mobile, build sous sous-chemin), rapport final (RAPPORT.md)
 - [x] Publié : dépôt public https://github.com/luckgphi-cloud/el-nino-2026 ,
       site https://luckgphi-cloud.github.io/el-nino-2026/ (Pages via Actions, déployé le 2026-11-03)
-- [ ] Collecte planifiée (collect.yml) pas encore exécutée sur GitHub
+- [x] Collecte (collect.yml) exécutée avec succès sur GitHub le 2026-11-03 (~13 min, résultats identiques au local)
 - [ ] Actions en Node 20 dépréciées (avertissements) : monter les versions des actions
 - [ ] Suite : hébergement sur le VPS de l'utilisateur
 
