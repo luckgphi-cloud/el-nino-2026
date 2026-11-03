@@ -58,6 +58,7 @@ a { color: #8ab4f8; }
 .legend-block + .legend-block { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 .legend-title { font-weight: 600; margin-bottom: 4px; }
 .legend-note { color: var(--muted); margin-top: 3px; }
+.legend-subtitle { margin-top: 6px; font-size: 0.95em; }
 .legend-item { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
 .ramp { display: flex; height: 12px; border: 1px solid #000; }
 .ramp span { flex: 1; }

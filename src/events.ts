@@ -62,6 +62,18 @@ export function eventCard(e: ClimateEvent): string {
 </div>`;
 }
 
+/** Pictogramme du niveau d'alerte, identique au rendu carte : double anneau (rouge), anneau fin (orange), rien (vert). */
+export function levelSvg(level: AlertLevel, size = 22): string {
+  const r = LEVEL_SIZE[level] * 5; // disque plus petit que les anneaux, comme sur la carte
+  const rings =
+    level === "Red"
+      ? `<circle cx="11" cy="11" r="9.6" fill="none" stroke="#111" stroke-width="1.6"/><circle cx="11" cy="11" r="8.3" fill="none" stroke="#fff" stroke-width="1.8"/>`
+      : level === "Orange"
+        ? `<circle cx="11" cy="11" r="7.6" fill="none" stroke="#fff" stroke-width="1"/>`
+        : "";
+  return `<svg class="shape" width="${size}" height="${size}" viewBox="0 0 22 22" aria-hidden="true">${rings}<circle cx="11" cy="11" r="${r.toFixed(1)}" fill="#9aa3ad" stroke="#111" stroke-width="1.2"/></svg>`;
+}
+
 /** Pictogramme SVG d'un type d'événement (légende, filtres, fiches). */
 export function shapeSvg(type: EventType, size = 18): string {
   const { color, shape } = EVENT_STYLE[type];

@@ -4,7 +4,13 @@ import {
   loadJSON, loadReadout, readoutAt,
   type AlertLevel, type EventsData, type EventType, type ForecastData, type Manifest, type NinoData, type SstIndex, type TrendsData,
 } from "./data";
-import { EVENT_STYLE, filterEvents, shapeSvg } from "./events";
+import { EVENT_STYLE, filterEvents, levelSvg, shapeSvg } from "./events";
+
+const LEVEL_LABEL: Record<AlertLevel, string> = {
+  Red: "Rouge : grand symbole, double anneau",
+  Orange: "Orange : symbole moyen, anneau fin",
+  Green: "Vert : petit symbole, sans anneau",
+};
 import { addDays, frDate, frMonthYear, signedC, weekRange } from "./format";
 import { createMap, type Projection } from "./map";
 
@@ -72,9 +78,12 @@ async function main() {
   }
   $("#legend-events").innerHTML = `<div class="legend-title">Événements (GDACS)</div>` +
     (Object.keys(EVENT_STYLE) as EventType[]).map((t) => `<div class="legend-item">${shapeSvg(t)} ${EVENT_STYLE[t].label}</div>`).join("") +
-    `<div class="legend-note">Taille = niveau d'alerte (vert, orange, rouge)</div>`;
+    `<div class="legend-title legend-subtitle">Niveau d'alerte GDACS</div>` +
+    (["Red", "Orange", "Green"] as AlertLevel[]).map((l) => `<div class="legend-item">${levelSvg(l)} ${LEVEL_LABEL[l]}</div>`).join("");
 
   // --- Filtres d'événements ---
+  document.querySelectorAll<HTMLInputElement>("input[name=lvl]").forEach((el) =>
+    el.insertAdjacentHTML("afterend", ` ${levelSvg(el.value as AlertLevel)}`));
   const types = new Set<EventType>(Object.keys(EVENT_STYLE) as EventType[]);
   $("#event-types").innerHTML = (Object.keys(EVENT_STYLE) as EventType[])
     .map((t) => `<label class="row"><input type="checkbox" name="evtype" value="${t}" checked /> ${shapeSvg(t)} ${EVENT_STYLE[t].label}</label>`).join("");

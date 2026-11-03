@@ -78,6 +78,13 @@ export async function createMap(container: HTMLElement, sst: SstIndex | null, in
         { id: "trends-fill", type: "fill", source: "trends", layout: { visibility: "none" }, paint: { "fill-pattern": ["get", "pattern"] } },
         { id: "trends-line", type: "line", source: "trends", layout: { visibility: "none" },
           paint: { "line-color": ["get", "stroke"], "line-width": 1.6, "line-dasharray": [3, 2] } },
+        // Niveau d'alerte : anneaux (sans couleur rouge, pour ne pas se confondre avec l'échelle des températures).
+        // Rouge = double anneau épais, orange = anneau fin, vert = aucun.
+        { id: "events-ring-outer", type: "circle", source: "events", filter: ["==", ["get", "level"], "Red"],
+          paint: { "circle-radius": 16, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#111", "circle-stroke-width": 2 } },
+        { id: "events-ring", type: "circle", source: "events", filter: ["in", ["get", "level"], ["literal", ["Red", "Orange"]]],
+          paint: { "circle-radius": ["match", ["get", "level"], "Red", 14, 11], "circle-color": "rgba(0,0,0,0)",
+            "circle-stroke-color": "#ffffff", "circle-stroke-width": ["match", ["get", "level"], "Red", 2.5, 1.2] } },
         { id: "events", type: "symbol", source: "events",
           layout: { "icon-image": ["get", "icon"], "icon-size": ["get", "size"], "icon-allow-overlap": true,
             "symbol-sort-key": ["match", ["get", "level"], "Red", 3, "Orange", 2, 1] } },
